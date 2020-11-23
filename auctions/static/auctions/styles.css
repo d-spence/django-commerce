@@ -1,3 +1,19 @@
 body {
     padding: 10px;
 }
+
+.index-listing {
+    padding: 20px;
+    margin: 20px;
+    border: 1px solid gray;
+    border-radius: 5px;
+}
+
+.index-listing-img {
+    max-height:200px;
+    max-width: 200px;
+}
+
+.index-listing-details {
+    
+}

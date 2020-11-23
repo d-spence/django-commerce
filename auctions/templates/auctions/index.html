@@ -3,5 +3,26 @@
 {% block body %}
     <h2>Active Listings</h2>
 
-    TODO
+    <div class="container-fluid"></div>
+    {% for listing in listings %}
+        <div class="row index-listing">
+            <div class="col-3">
+                <img src="{{ listing.image.url }}" alt="listing image" class="index-listing-img">
+            </div>
+            <div class="col index-listing-details">
+            {% if listing.active == True %}
+                <h4>{{ listing.title }} <span class="badge badge-primary">Active</span></h4>
+            {% else %}
+                <h4>{{ listing.title }} <span class="badge badge-secondary">Inactive</span></h4>
+            {% endif %}
+                <p class="text-muted">Listed on {{ listing.date }} by {{ listing.user_id.username }}</p>
+                <p><strong>Current Bid: ${{ listing.current_bid }}</strong></p>
+                <p>{{ listing.category_id }}</p>
+            </div>
+            <div class="col index-listing-details">
+                <p><strong>Description:</strong> {{ listing.description }}</p>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
 {% endblock %}
