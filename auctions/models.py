@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
 from django.db import models
 
 
@@ -23,19 +24,25 @@ class Auction(models.Model):
     """ Primary data model for site auctions """
     title = models.CharField(max_length=128)
     active = models.BooleanField(default=True)
-    date = models.DateField(auto_now_add=True)
+    date = models.DateTimeField(default=timezone.now)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     category_id = models.ForeignKey(Category, on_delete=models.CASCADE)
     description = models.TextField()
-    current_bid = models.IntegerField()
+    current_bid = models.IntegerField(default=1.00)
     image = models.ImageField(upload_to='auction_imgs')
 
     def __str__(self):
         return f"{self.title} ({self.category_id}) listed by {self.user_id}"
 
+    def start_bid(self):
+        # Create a new bid representing the starting bid amount
+        bid = Bid(amount=self.current_bid, user_id=self.user_id, listing_id=self.id)
+        bid.save()
+
 
 class Comment(models.Model):
     comment = models.CharField(max_length=256)
+    date = models.DateTimeField(default=timezone.now)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     listing_id = models.ForeignKey(Auction, on_delete=models.CASCADE)
 

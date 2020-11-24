@@ -1,0 +1,49 @@
+{% extends "auctions/layout.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block body %}
+    <div class="container-fluid"></div>
+        <div class="row listing">
+            <div class="col">
+                <h2 class="listing-title">{{ listing.title }} 
+                    {% if listing.active == True %}
+                        <span class="badge badge-primary">Active</span>
+                    {% else %}
+                        <span class="badge badge-secondary">Inactive</span>
+                    {% endif %}
+                </h2>
+                <img src="{{ listing.image.url }}" alt="listing image" class="listing-img">
+                <div class="listing-details">
+                    <h3><strong>${{ listing.current_bid }}</strong></h3>
+                    <p><strong>Category: </strong>{{ listing.category_id }}</p>
+                    <p><strong>Description: </strong>{{ listing.description }}</p>
+                </div>
+                <div class="listing-details">
+                    <h4>Details</h4>
+                    <ul>
+                        <li>Listed by: {{ listing.user_id.username }}</li>
+                        <li>List Date: {{ listing.date }}</li>
+                    </ul>
+                </div>
+                <div class="listing-details">
+                    <h4>Comments</h4>
+                    <form action="{% url 'post-comment' listing.id %}" method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <input class="btn btn-primary" type="submit" value="Submit Comment">
+                    </form>
+                    {% for comment in comments %}
+                        <div class="listing-comment mt-3 mb-3">
+                            <h5>
+                                <strong>{{ comment.user_id.username }}</strong>
+                                <span class="text-muted">@ {{ comment.date }}</span>
+                            </h5>
+                            {{ comment.comment }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

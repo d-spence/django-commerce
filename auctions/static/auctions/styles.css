@@ -7,13 +7,51 @@ body {
     margin: 20px;
     border: 1px solid gray;
     border-radius: 5px;
+    background-color: snow;
 }
 
 .index-listing-img {
-    max-height:200px;
+    max-height: 200px;
     max-width: 200px;
 }
 
 .index-listing-details {
-    
+    padding: 10px;
+    margin: 10px;
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    background-color: white;
+}
+
+.listing {
+    padding: 20px;
+    margin: 20px;
+    border: 1px solid gray;
+    border-radius: 5px;
+    background-color: snow;
+}
+
+.listing-title {
+    margin: 10px;
+}
+
+.listing-img {
+    margin: 10px;
+    max-height: 600px;
+    max-width: 600px;
+}
+
+.listing-details {
+    padding: 10px;
+    margin: 10px;
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    background-color: white;
+}
+
+.listing-comment {
+    padding: 10px;
+    border: 1px solid gray;
+    border-radius: 5px;
+    background-color: snow;
 }

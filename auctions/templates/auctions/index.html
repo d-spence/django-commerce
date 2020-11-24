@@ -10,17 +10,19 @@
                 <img src="{{ listing.image.url }}" alt="listing image" class="index-listing-img">
             </div>
             <div class="col index-listing-details">
-            {% if listing.active == True %}
-                <h4>{{ listing.title }} <span class="badge badge-primary">Active</span></h4>
-            {% else %}
-                <h4>{{ listing.title }} <span class="badge badge-secondary">Inactive</span></h4>
-            {% endif %}
+                <h4><a href="{% url 'listing' listing.id %}">{{ listing.title }} </a>
+                {% if listing.active == True %}
+                    <span class="badge badge-primary">Active</span>
+                {% else %}
+                    <span class="badge badge-secondary">Inactive</span>
+                {% endif %}
+                </h4>
                 <p class="text-muted">Listed on {{ listing.date }} by {{ listing.user_id.username }}</p>
-                <p><strong>Current Bid: ${{ listing.current_bid }}</strong></p>
-                <p>{{ listing.category_id }}</p>
+                <h3><strong>${{ listing.current_bid }}</strong></h3>
+                <p><strong>Category: </strong>{{ listing.category_id }}</p>
             </div>
-            <div class="col index-listing-details">
-                <p><strong>Description:</strong> {{ listing.description }}</p>
+            <div class="col index-listing-details">  
+                <p><strong>Description: </strong>{{ listing.description }}</p>
             </div>
         </div>
     {% endfor %}

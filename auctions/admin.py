@@ -5,8 +5,15 @@ from .models import User, Category, Auction, Comment, Bid
 
 class AuctionAdmin(admin.ModelAdmin):
     """ customized admin options for Auction model """
-    list_display = ('title', 'id', 'user_id', 'category_id', 'date', 'active')
-    list_filter = ['date']
+    fieldsets = [
+        ('Auction (Primary)', {'fields': ['title', 'category_id', 'current_bid', 'description']}),
+        ('Auction (Secondary)', {'fields': ['user_id', 'date'],
+                                 'classes': ['collapse']}),
+        ('Image Details', {'fields': ['image']}),
+    ]
+
+    list_display = ('title', 'id', 'category_id', 'date', 'active')
+    list_filter = ['date', 'category_id']
     list_per_page = 20
     search_fields = ['title']
 

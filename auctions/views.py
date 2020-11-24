@@ -4,23 +4,39 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User, Auction
+from .models import User, Auction, Comment
+from .forms import CommentForm
 
 
 def index(request):
     listings = Auction.objects.filter(active=True)
+    return render(request, "auctions/index.html", {'listings': listings})
+
+
+def listing_view(request, listing_id):
+    """ Show the auction listing details and allow bidding on item if active """
+    listing = Auction.objects.get(pk=listing_id)
+    comments = Comment.objects.filter(listing_id=listing.id)
+    form = CommentForm()
+
     context = {
-        'listings': listings,
+        'listing': listing,
+        'comments': comments,
+        'form': form,
     }
-
-    return render(request, "auctions/index.html", context)
-
+    return render(request, 'auctions/listing.html', context)
 
 
+def post_comment(request, listing_id):
+    """ Handle posting user comments on listings """
+    if request.method == "POST":
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = request.POST["comment"]
+        
 
-
-
-
+def category_view(request):
+    pass
 
 
 def login_view(request):
