@@ -4,12 +4,14 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User, Auction, Comment
+from .models import User, Auction, Comment, Category
 from .forms import CommentForm
 
 
-def index(request):
+def index(request, category=None, is_active=True):
     listings = Auction.objects.filter(active=True)
+    if category != None:
+        listings = listings.filter(category_id=Category.objects.get(name=category))
     return render(request, "auctions/index.html", {'listings': listings})
 
 
@@ -32,11 +34,25 @@ def post_comment(request, listing_id):
     if request.method == "POST":
         form = CommentForm(request.POST)
         if form.is_valid():
-            comment = request.POST["comment"]
+            current_user = request.user
+            if current_user.is_authenticated:
+                comment_text = form.cleaned_data["comment"]
+                comment = Comment(user_id=current_user, listing_id=Auction.objects.get(pk=listing_id),
+                                  comment=comment_text)
+                comment.save()
+                return HttpResponseRedirect(reverse("listing", args=[listing_id]))
+            else:
+                return HttpResponseRedirect(reverse("login"))
         
 
 def category_view(request):
-    pass
+    """ Display list of all categories with links to a filtered listing view that
+    displays only listings of that category """
+    categories = Category.objects.all()
+    context = {
+        'categories': categories,
+    }
+    return render(request, 'auctions/categories.html', context)
 
 
 def login_view(request):
