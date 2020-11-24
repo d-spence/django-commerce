@@ -15,7 +15,9 @@
                 </h2>
                 <img src="{{ listing.image.url }}" alt="listing image" class="listing-img">
                 <div class="listing-details">
-                    <h3><strong>${{ listing.current_bid }}</strong></h3>
+                    <p><strong>Highest Bidder: </strong>{{ highest_bidder.user_id.username }}</p>
+                    <h3><strong>${{ listing.current_bid|floatformat:2 }}</strong></h3>
+                    <a href="{% url 'place-bid' listing.id %}" class="btn btn-primary">Place a Bid</a>
                     <p><strong>Category: </strong>{{ listing.category_id }}</p>
                     <p><strong>Description: </strong>{{ listing.description }}</p>
                 </div>

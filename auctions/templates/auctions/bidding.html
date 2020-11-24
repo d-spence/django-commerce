@@ -1,0 +1,22 @@
+{% extends "auctions/layout.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block body %}
+    <div class="container-fluid"></div>
+        <div class="row listing">
+            <div class="col">
+                <h2 class="listing-title">{{ listing.title }}</h2>
+                <div class="listing-details">
+                    <h4>Place a bid</h4>
+                    <h5>Current Bid: <strong>${{ listing.current_bid|floatformat:2 }}<strong></h5>
+                    <form action="{% url 'place-bid' listing.id %}" method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <input class="btn btn-primary" type="submit" value="Place Bid">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

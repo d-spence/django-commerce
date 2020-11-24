@@ -28,7 +28,7 @@ class Auction(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     category_id = models.ForeignKey(Category, on_delete=models.CASCADE)
     description = models.TextField()
-    current_bid = models.IntegerField(default=1.00)
+    current_bid = models.DecimalField(max_digits=10, decimal_places=2)
     image = models.ImageField(upload_to='auction_imgs')
 
     def __str__(self):
@@ -56,4 +56,4 @@ class Bid(models.Model):
     listing_id = models.ForeignKey(Auction, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.listing_id}: {self.user_id}: ${self.amount}"
+        return f"{self.listing_id.title}: {self.user_id.username}: ${self.amount}"

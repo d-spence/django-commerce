@@ -4,13 +4,13 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User, Auction, Comment, Category
-from .forms import CommentForm
+from .models import User, Auction, Comment, Category, Bid
+from .forms import CommentForm, BiddingForm
 
 
 def index(request, category=None, is_active=True):
     listings = Auction.objects.filter(active=True)
-    if category != None:
+    if category is not None:
         listings = listings.filter(category_id=Category.objects.get(name=category))
     return render(request, "auctions/index.html", {'listings': listings})
 
@@ -19,14 +19,46 @@ def listing_view(request, listing_id):
     """ Show the auction listing details and allow bidding on item if active """
     listing = Auction.objects.get(pk=listing_id)
     comments = Comment.objects.filter(listing_id=listing.id)
+    highest_bidder = Bid.objects.filter(listing_id=listing).filter(amount=listing.current_bid)
+    if len(highest_bidder) == 1:
+        highest_bidder = highest_bidder.get()
     form = CommentForm()
 
     context = {
         'listing': listing,
+        'highest_bidder': highest_bidder,
         'comments': comments,
         'form': form,
     }
     return render(request, 'auctions/listing.html', context)
+
+
+def place_bid(request, listing_id):
+    """ Handle bidding on listings """
+    listing = Auction.objects.get(pk=listing_id)
+    if request.method == "POST":
+        form = BiddingForm(request.POST)
+        if form.is_valid():
+            current_user = request.user
+            if current_user.is_authenticated:
+                bid_amount = form.cleaned_data["amount"]
+                if bid_amount > listing.current_bid:
+                    bid = Bid(amount=bid_amount, user_id=current_user, listing_id=listing)
+                    bid.save() # Save the bid
+                    listing.current_bid = bid_amount # Update to new highest bid amount
+                    listing.save()
+                    return HttpResponseRedirect(reverse("listing", args=[listing_id]))
+                return HttpResponseRedirect(reverse("place-bid", args=[listing_id]))
+            else:
+                return HttpResponseRedirect(reverse("login"))
+    else:
+        form = BiddingForm()
+
+    context = {
+        'listing': listing,
+        'form': form,
+    }
+    return render(request, 'auctions/bidding.html', context)
 
 
 def post_comment(request, listing_id):
