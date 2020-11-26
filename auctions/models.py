@@ -4,8 +4,11 @@ from django.db import models
 
 
 class User(AbstractUser):
-    listings = models.ManyToManyField('Auction', blank=True, related_name="listed_by")
-    watched = models.ManyToManyField('Auction', blank=True, related_name="watched_by")
+    watched = models.ManyToManyField(
+        'Auction', 
+        blank=True, 
+        related_name="watched_by"
+    )
 
     def __str__(self):
         return f"{self.username} ({self.email})"
@@ -25,7 +28,7 @@ class Auction(models.Model):
     title = models.CharField(max_length=128)
     active = models.BooleanField(default=True)
     date = models.DateTimeField(default=timezone.now)
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings")
     category_id = models.ForeignKey(Category, on_delete=models.CASCADE)
     description = models.TextField()
     current_bid = models.DecimalField(max_digits=10, decimal_places=2)

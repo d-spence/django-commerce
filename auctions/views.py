@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -11,28 +12,52 @@ from .forms import CommentForm, BiddingForm
 def index(request, category=None, is_active=True):
     listings = Auction.objects.filter(active=True)
     if category is not None:
-        listings = listings.filter(category_id=Category.objects.get(name=category))
-    return render(request, "auctions/index.html", {'listings': listings})
+        cat = Category.objects.get(name=category)
+        listings = listings.filter(category_id=cat)
+    else:
+        cat = None
+    context = {
+        'listings': listings,
+        'category': cat,
+    }
+    return render(request, "auctions/index.html", context)
 
 
 def listing_view(request, listing_id):
     """ Show the auction listing details and allow bidding on item if active """
     listing = Auction.objects.get(pk=listing_id)
-    comments = Comment.objects.filter(listing_id=listing.id)
     highest_bidder = Bid.objects.filter(listing_id=listing).filter(amount=listing.current_bid)
+    comments = Comment.objects.filter(listing_id=listing.id)
+    form = CommentForm()
     if len(highest_bidder) == 1:
         highest_bidder = highest_bidder.get()
-    form = CommentForm()
-
+    
+    watched = False
+    current_user_watched_items = request.user.watched.all()
+    if listing in current_user_watched_items:
+        watched = True
+    
     context = {
         'listing': listing,
         'highest_bidder': highest_bidder,
         'comments': comments,
+        'watched': watched,
         'form': form,
     }
     return render(request, 'auctions/listing.html', context)
 
 
+def category_view(request):
+    """ Display list of all categories with links to a filtered listing view that
+    displays only listings of that category """
+    categories = Category.objects.all()
+    context = {
+        'categories': categories,
+    }
+    return render(request, 'auctions/categories.html', context)
+
+
+@login_required
 def place_bid(request, listing_id):
     """ Handle bidding on listings """
     listing = Auction.objects.get(pk=listing_id)
@@ -61,6 +86,7 @@ def place_bid(request, listing_id):
     return render(request, 'auctions/bidding.html', context)
 
 
+@login_required
 def post_comment(request, listing_id):
     """ Handle posting user comments on listings """
     if request.method == "POST":
@@ -75,16 +101,35 @@ def post_comment(request, listing_id):
                 return HttpResponseRedirect(reverse("listing", args=[listing_id]))
             else:
                 return HttpResponseRedirect(reverse("login"))
-        
 
-def category_view(request):
-    """ Display list of all categories with links to a filtered listing view that
-    displays only listings of that category """
-    categories = Category.objects.all()
-    context = {
-        'categories': categories,
-    }
-    return render(request, 'auctions/categories.html', context)
+
+@login_required
+def watch_list(request):
+    """ Display a user's watched items and allow deletion """
+    current_user = request.user
+    listings = current_user.watched.all()
+
+    return render(request, 'auctions/watchlist.html', {'listings': listings})
+    
+
+@login_required
+def watch_list_add(request, listing_id):
+    """ Add an auction to current user's watchlist, then redirect """
+    current_user = request.user
+    listing = Auction.objects.get(pk=listing_id)
+    current_user.watched.add(listing)
+
+    return HttpResponseRedirect(reverse("listing", args=[listing_id]))
+
+
+@login_required
+def watch_list_rem(request, listing_id):
+    """ Remove an auction to current user's watchlist, then redirect """
+    current_user = request.user
+    listing = Auction.objects.get(pk=listing_id)
+    current_user.watched.remove(listing)
+
+    return HttpResponseRedirect(reverse("watchlist"))
 
 
 def login_view(request):

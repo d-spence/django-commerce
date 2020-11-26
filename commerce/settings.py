@@ -129,3 +129,7 @@ MEDIA_URL = '/media/'
 
 # Path where media is stored
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+
+# Login/logout routes
+LOGIN_URL = '/login/'
+LOGOUT_REDIRECT_URL = ''

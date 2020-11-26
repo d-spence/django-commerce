@@ -6,8 +6,8 @@ from .models import User, Category, Auction, Comment, Bid
 class AuctionAdmin(admin.ModelAdmin):
     """ customized admin options for Auction model """
     fieldsets = [
-        ('Auction (Primary)', {'fields': ['title', 'category_id', 'current_bid', 'description']}),
-        ('Auction (Secondary)', {'fields': ['user_id', 'date'],
+        ('Auction Details', {'fields': ['title', 'category_id', 'current_bid', 'description']}),
+        ('Auction Details (Advanced)', {'fields': ['user_id', 'date'],
                                  'classes': ['collapse']}),
         ('Image Details', {'fields': ['image']}),
     ]

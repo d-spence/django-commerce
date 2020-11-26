@@ -1,15 +1,14 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    {% if category != None %}
-        <h2>Active Listings ({{ category.name }})</h2>
-    {% else %}
-        <h2>Active Listings</h2>
-    {% endif %}
+    <h2>My Watchlist</h2>
 
     <div class="container-fluid"></div>
     {% for listing in listings %}
         <div class="row index-listing">
+            <div class="col-1">
+                <a href="{% url 'watchlist-rem' listing.id %}" class="btn btn-sm btn-danger">Remove</a>
+            </div>
             <div class="col-3">
                 <img src="{{ listing.image.url }}" alt="listing image" class="index-listing-img">
             </div>
@@ -32,9 +31,9 @@
     {% empty %}
         <div class="row index-listing">
             <div class="col">
-                <h4>No listings were found.</h4>
+                <h4>Your Watchlist is empty.</h4>
             </div>
-        </div>   
+        </div>
     {% endfor %}
     </div>
 {% endblock %}
