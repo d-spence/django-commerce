@@ -84,10 +84,11 @@ def create_listing(request):
             category = form.cleaned_data['category_id']
             description = form.cleaned_data['description']
             starting_bid = form.cleaned_data['current_bid']
-            image = form.files['image']
             new_listing = Auction(title=title, category_id=category,
                 user_id=request.user, description=description,
-                current_bid=starting_bid, image=image)
+                current_bid=starting_bid)
+            if form.files: 
+                new_listing.image = form.files['image']
             new_listing.save()
             return HttpResponseRedirect(reverse("listing", args=[new_listing.id]))
         else:

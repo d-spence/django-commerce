@@ -37,11 +37,6 @@ class Auction(models.Model):
     def __str__(self):
         return f"{self.title} ({self.category_id}) listed by {self.user_id}"
 
-    def start_bid(self):
-        # Create a new bid representing the starting bid amount
-        bid = Bid(amount=self.current_bid, user_id=self.user_id, listing_id=self.id)
-        bid.save()
-
 
 class Comment(models.Model):
     comment = models.CharField(max_length=256)
