@@ -3,6 +3,8 @@
 {% block body %}
     {% if category != None %}
         <h2>Active Listings ({{ category.name }})</h2>
+    {% elif disp == 'all' %}
+        <h2>All Listings</h2>
     {% else %}
         <h2>Active Listings</h2>
     {% endif %}

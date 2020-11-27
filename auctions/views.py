@@ -1,16 +1,20 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.urls import reverse
 
 from .models import User, Auction, Comment, Category, Bid
-from .forms import CommentForm, BiddingForm
+from .forms import CommentForm, BiddingForm, ListingForm
 
 
-def index(request, category=None, is_active=True):
-    listings = Auction.objects.filter(active=True)
+def index(request, category=None, disp='active'):
+    if disp == 'all':
+        listings = Auction.objects.all()
+    else:
+        listings = Auction.objects.filter(active=True)
+
     if category is not None:
         cat = Category.objects.get(name=category)
         listings = listings.filter(category_id=cat)
@@ -19,6 +23,7 @@ def index(request, category=None, is_active=True):
     context = {
         'listings': listings,
         'category': cat,
+        'disp': disp,
     }
     return render(request, "auctions/index.html", context)
 
@@ -27,21 +32,32 @@ def listing_view(request, listing_id):
     """ Show the auction listing details and allow bidding on item if active """
     listing = Auction.objects.get(pk=listing_id)
     highest_bidder = Bid.objects.filter(listing_id=listing).filter(amount=listing.current_bid)
+    current_user = request.user
     comments = Comment.objects.filter(listing_id=listing.id)
     form = CommentForm()
     if len(highest_bidder) == 1:
         highest_bidder = highest_bidder.get()
     
-    watched = False
-    current_user_watched_items = request.user.watched.all()
-    if listing in current_user_watched_items:
-        watched = True
+    watched = False # Is the current user watching this listing?
+    owner = False # Is the current user the owner of the listing?
+    winner = False # Is the current user the listing winner?
+    if current_user.is_authenticated:
+        current_user_watched_items = current_user.watched.all()
+        if listing in current_user_watched_items:
+            watched = True
+        current_user_listings = Auction.objects.filter(user_id=current_user)
+        if listing in current_user_listings:
+            owner = True
+        current_user_bids = Bid.objects.filter(user_id=current_user)
+        if highest_bidder in current_user_bids:
+            winner = True
     
     context = {
         'listing': listing,
         'highest_bidder': highest_bidder,
         'comments': comments,
         'watched': watched,
+        'owner': owner,
         'form': form,
     }
     return render(request, 'auctions/listing.html', context)
@@ -58,6 +74,54 @@ def category_view(request):
 
 
 @login_required
+def create_listing(request):
+    """ Allow signed-in users to create a new auction listing """
+    if request.method == "POST":
+        form = ListingForm(request.POST, request.FILES)
+        if form.is_valid():
+            title = form.cleaned_data['title']
+            category = form.cleaned_data['category_id']
+            description = form.cleaned_data['description']
+            starting_bid = form.cleaned_data['current_bid']
+            image = form.files['image']
+            new_listing = Auction(title=title, category_id=category,
+                user_id=request.user, description=description,
+                current_bid=starting_bid, image=image)
+            new_listing.save()
+            return HttpResponseRedirect(reverse("listing", args=[new_listing.id]))
+        else:
+            raise Http404("ListingForm POST data was not valid.")
+    else:
+        form = ListingForm()
+        context = {
+            'form': form,
+        }
+        return render(request, 'auctions/create_listing.html', context)
+
+
+@login_required
+def close_listing(request, listing_id):
+    """ Close a listing if logged in user is the one who created it """
+    listing = Auction.objects.get(pk=listing_id)
+    if request.user == listing.user_id:
+        listing.active = False
+        listing.save()
+        return HttpResponseRedirect(reverse("listing", args=[listing.id]))
+    else:
+        raise Http404("You are not authorized to close this listing.")
+
+@login_required
+def close_listing_confirm(request, listing_id):
+    """ Confirm with the user before closing a listing """
+    listing = Auction.objects.get(pk=listing_id)
+    if request.user == listing.user_id:
+        return render(request, 'auctions/confirm_close.html', {'listing': listing})
+    else:
+        raise Http404("You are not authorized to close this listing.")
+
+
+
+@login_required
 def place_bid(request, listing_id):
     """ Handle bidding on listings """
     listing = Auction.objects.get(pk=listing_id)
@@ -65,25 +129,23 @@ def place_bid(request, listing_id):
         form = BiddingForm(request.POST)
         if form.is_valid():
             current_user = request.user
-            if current_user.is_authenticated:
-                bid_amount = form.cleaned_data["amount"]
-                if bid_amount > listing.current_bid:
-                    bid = Bid(amount=bid_amount, user_id=current_user, listing_id=listing)
-                    bid.save() # Save the bid
-                    listing.current_bid = bid_amount # Update to new highest bid amount
-                    listing.save()
-                    return HttpResponseRedirect(reverse("listing", args=[listing_id]))
-                return HttpResponseRedirect(reverse("place-bid", args=[listing_id]))
-            else:
-                return HttpResponseRedirect(reverse("login"))
+            bid_amount = form.cleaned_data["amount"]
+            if bid_amount > listing.current_bid:
+                bid = Bid(amount=bid_amount, user_id=current_user, listing_id=listing)
+                bid.save() # Save the bid
+                listing.current_bid = bid_amount # Update to new highest bid amount
+                listing.save()
+
+            return HttpResponseRedirect(reverse("listing", args=[listing_id]))
+        else:
+            raise Http404("BiddingForm POST data was not valid.")
     else:
         form = BiddingForm()
-
-    context = {
-        'listing': listing,
-        'form': form,
-    }
-    return render(request, 'auctions/bidding.html', context)
+        context = {
+            'listing': listing,
+            'form': form,
+        }
+        return render(request, 'auctions/bidding.html', context)
 
 
 @login_required
@@ -93,14 +155,14 @@ def post_comment(request, listing_id):
         form = CommentForm(request.POST)
         if form.is_valid():
             current_user = request.user
-            if current_user.is_authenticated:
-                comment_text = form.cleaned_data["comment"]
-                comment = Comment(user_id=current_user, listing_id=Auction.objects.get(pk=listing_id),
-                                  comment=comment_text)
-                comment.save()
-                return HttpResponseRedirect(reverse("listing", args=[listing_id]))
-            else:
-                return HttpResponseRedirect(reverse("login"))
+            comment_text = form.cleaned_data["comment"]
+            comment = Comment(user_id=current_user, listing_id=Auction.objects.get(pk=listing_id),
+                                comment=comment_text)
+            comment.save()
+        else:
+            raise Http404("CommentForm POST data was not valid.")
+
+    return HttpResponseRedirect(reverse("listing", args=[listing_id]))
 
 
 @login_required

@@ -7,7 +7,7 @@
         <div class="row listing">
             <div class="col">
                 <h2 class="listing-title">{{ listing.title }} 
-                    {% if listing.active == True %}
+                    {% if listing.active %}
                         <span class="badge badge-primary">Active</span>
                     {% else %}
                         <span class="badge badge-secondary">Inactive</span>
@@ -19,18 +19,30 @@
                 <img src="{{ listing.image.url }}" alt="listing image" class="listing-img">
                 <div class="listing-details">
                     <h3><strong>${{ listing.current_bid|floatformat:2 }}</strong></h3>
-                    {% if not highest_bidder %}
-                        <p><strong>New Listing!</strong> Improve your chances. Be the first to bid on this item!</p>
+                    {% if listing.active %}
+                        {% if not highest_bidder %}
+                            <p><strong>New Listing!</strong> Improve your chances. Be the first to bid on this item!</p>
+                        {% else %}
+                            <p><strong>Highest Bidder: </strong>{{ highest_bidder.user_id.username }}</p>
+                        {% endif %}
+                        <a href="{% url 'place-bid' listing.id %}" class="btn btn-primary btn-lg">Place a Bid</a>
+                        <div class="mt-2">
+                        {% if owner %}
+                            <a href="{% url 'close-listing-confirm' listing.id %}" class="btn btn-sm btn-danger">Close This Listing</a>
+                        {% endif %}
+                        </div>
+                    {% elif not listing.active and not owner and winner %}
+                        <p><strong>You are the winner of this auction! congratulations</strong></p>
                     {% else %}
-                        <p><strong>Highest Bidder: </strong>{{ highest_bidder.user_id.username }}</p>
+                        <p><strong>This auction has ended. No more bids can be placed.</strong></p>
                     {% endif %}
-                    <a href="{% url 'place-bid' listing.id %}" class="btn btn-primary btn-lg">Place a Bid</a>
                     <div class="mt-2">
-                    {% if watched %}
-                        <a href="{% url 'watchlist-rem' listing.id %}" class="btn btn-sm btn-danger">Remove from Watchlist</a>
-                    {% else %}
-                        <a href="{% url 'watchlist-add' listing.id %}" class="btn btn-sm btn-secondary">Add to Watchlist</a>
-                    {% endif %}
+                        {% if watched %}
+                            <a href="{% url 'watchlist-rem' listing.id %}" class="btn btn-sm btn-warning">Remove from Watchlist</a>
+                        {% else %}
+                            <a href="{% url 'watchlist-add' listing.id %}" class="btn btn-sm btn-info">Add to Watchlist</a>
+                        {% endif %}
+                        
                     </div>
                 </div>
                 <div class="listing-details">

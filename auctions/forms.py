@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Comment, Bid
+from .models import Comment, Bid, Auction
 
 
 class CommentForm(forms.ModelForm):
@@ -25,3 +25,14 @@ class BiddingForm(forms.ModelForm):
     class Meta:
         model = Bid
         fields = ['amount']
+
+
+class ListingForm(forms.ModelForm):
+    class Meta:
+        model = Auction
+        widgets = {
+            'active': forms.HiddenInput(),
+            'date': forms.HiddenInput(),
+            'user_id': forms.HiddenInput(),
+        }
+        fields = ['title', 'category_id', 'description', 'current_bid', 'image']

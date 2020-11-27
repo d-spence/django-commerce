@@ -7,7 +7,7 @@ class AuctionAdmin(admin.ModelAdmin):
     """ customized admin options for Auction model """
     fieldsets = [
         ('Auction Details', {'fields': ['title', 'category_id', 'current_bid', 'description']}),
-        ('Auction Details (Advanced)', {'fields': ['user_id', 'date'],
+        ('Auction Details (Advanced)', {'fields': ['active', 'user_id', 'date'],
                                  'classes': ['collapse']}),
         ('Image Details', {'fields': ['image']}),
     ]

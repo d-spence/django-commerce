@@ -32,7 +32,7 @@ class Auction(models.Model):
     category_id = models.ForeignKey(Category, on_delete=models.CASCADE)
     description = models.TextField()
     current_bid = models.DecimalField(max_digits=10, decimal_places=2)
-    image = models.ImageField(upload_to='auction_imgs')
+    image = models.ImageField(default='default.png', upload_to='auction_imgs')
 
     def __str__(self):
         return f"{self.title} ({self.category_id}) listed by {self.user_id}"

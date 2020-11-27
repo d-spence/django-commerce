@@ -1,0 +1,17 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <div class="container-fluid"></div>
+        <h2>Close Listing</h2>
+        <div class="row listing">
+            <div class="col">
+                <div class="listing-details">
+                    <h4>Are you sure you want to close this listing?</h4>
+                    <p>This will permanently close your listing and the top bidder will win.</p>
+                    <p>Listing to be closed: <strong>{{ listing.title }}</strong></p>
+                    <a href="{% url 'close-listing' listing.id %}" class="btn btn-sm btn-danger">Close Listing</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
