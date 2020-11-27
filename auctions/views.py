@@ -59,6 +59,7 @@ def listing_view(request, listing_id):
         'comments': comments,
         'watched': watched,
         'owner': owner,
+        'winner': winner,
         'form': form,
     }
     return render(request, 'auctions/listing.html', context)

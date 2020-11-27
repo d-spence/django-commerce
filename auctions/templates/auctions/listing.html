@@ -31,8 +31,8 @@
                             <a href="{% url 'close-listing-confirm' listing.id %}" class="btn btn-sm btn-danger">Close This Listing</a>
                         {% endif %}
                         </div>
-                    {% elif not listing.active and not owner and winner %}
-                        <p><strong>You are the winner of this auction! congratulations</strong></p>
+                    {% elif winner %}
+                        <p><strong>You are the winner of this auction! Congratulations!</strong></p>
                     {% else %}
                         <p><strong>This auction has ended. No more bids can be placed.</strong></p>
                     {% endif %}
