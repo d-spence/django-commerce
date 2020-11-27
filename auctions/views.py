@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render
@@ -135,8 +136,11 @@ def place_bid(request, listing_id):
                 bid.save() # Save the bid
                 listing.current_bid = bid_amount # Update to new highest bid amount
                 listing.save()
-
-            return HttpResponseRedirect(reverse("listing", args=[listing_id]))
+                return HttpResponseRedirect(reverse("listing", args=[listing_id]))
+            else:
+                messages.add_message(request, messages.INFO, 
+                    "Your bid was too low. Your bid must be greater than the current highest bid.")
+                return HttpResponseRedirect(reverse("place-bid", args=[listing_id]))
         else:
             raise Http404("BiddingForm POST data was not valid.")
     else:
